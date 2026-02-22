@@ -1,4 +1,5 @@
-import { poems } from "../poems.data.js";
+import { poems as seedPoems } from "../poems.data.js";
+import { loadUserPoems } from "../store.js";
 import { el, excerpt } from "../ui.js";
 
 export default async function Library({ query }) {
@@ -38,6 +39,7 @@ export default async function Library({ query }) {
     list.innerHTML = "";
     const q = search.value.trim().toLowerCase();
     const tag = tagSelect.value;
+    const poems = [...loadUserPoems(), ...seedPoems];
 
     const filtered = poems.filter(p => {
       const hit = (p.title + " " + p.content).toLowerCase().includes(q);

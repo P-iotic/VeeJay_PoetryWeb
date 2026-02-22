@@ -204,6 +204,23 @@ hr.sep{
 }
 .muted{color:var(--muted)}
 
+.exportCard{
+  border-radius: 18px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.35);
+  padding: 18px;
+  overflow: hidden;
+}
+
+.exportCard.square { width: 1080px; height: 1080px; }
+.exportCard.portrait { width: 1080px; height: 1350px; }
+.exportCard.story { width: 1080px; height: 1920px; }
+
+.exportCard .poemText{
+  white-space: pre-wrap;
+  line-height: 1.75;
+}
+
 .toast{
   position: fixed;
   bottom: 18px;
