@@ -2,12 +2,18 @@ import Home from "./pages/home.js";
 import Library from "./pages/library.js";
 import Poem from "./pages/poem.js";
 import Editor from "./pages/editor.js";
+import Collections from "./pages/collections.js";
+import Collection from "./pages/collection.js";
 
 const routes = {
   "#/": Home,
   "#/library": Library,
-  "#/poem": Poem,      // expects ?id=
+  "#/poem": Poem,
   "#/editor": Editor,
+
+  // NEW
+  "#/collections": Collections,
+  "#/collection": Collection, // expects ?name=
 };
 
 let mountEl = null;

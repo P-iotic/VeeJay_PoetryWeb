@@ -18,6 +18,13 @@ export default async function Editor() {
     value: (draft.tags || "").toString()
   });
 
+  // NEW: Collection / Chapter input
+  const collectionInput = el("input", {
+    class: "input",
+    placeholder: "Collection / Chapter e.g. Dark Mind, Love Notes, Zulu Reflections",
+    value: draft.collection || ""
+  });
+
   const formatSelect = el("select", { class: "input", id: "formatSelect" }, []);
   [
     ["portrait", "Portrait 4:5 (1080×1350)"],
@@ -25,7 +32,6 @@ export default async function Editor() {
     ["story", "Story 9:16 (1080×1920)"]
   ].forEach(([v, t]) => formatSelect.appendChild(el("option", { value: v, text: t })));
 
-  // Default format (saveable if you want; for now just use draft.format if present)
   formatSelect.value = draft.format || "portrait";
 
   const textArea = el("textarea", { class: "textarea", placeholder: "Write here…" }, []);
@@ -36,6 +42,9 @@ export default async function Editor() {
   const previewTitle = el("h2", { class: "poemTitle", id: "previewTitle", text: draft.title || "Untitled" });
   const previewText = el("div", { class: "poemText", id: "previewText", text: draft.content || "Start writing… your preview appears here." });
 
+  // NEW: show collection in preview (subtle)
+  const previewMeta = el("div", { class: "metaRow", id: "previewMeta" }, []);
+
   // Export area: wrap with a resizable class (square/portrait/story)
   const exportArea = el("div", {
     class: `exportCard ${formatSelect.value}`,
@@ -44,28 +53,44 @@ export default async function Editor() {
     el("div", { class: "pill", id: "exportBrand", text: "Velaphi Poetry • Draft" }),
     el("hr", { class: "sep" }),
     previewTitle,
+    previewMeta,
     el("div", { style: "height:10px" }),
     previewText
   ]);
 
   // --- Helpers ---
   function applyFormat() {
-    const area = exportArea;
-    area.classList.remove("square", "portrait", "story");
-    area.classList.add(formatSelect.value);
+    exportArea.classList.remove("square", "portrait", "story");
+    exportArea.classList.add(formatSelect.value);
   }
 
   function syncDraft() {
     const title = titleInput.value.trim();
     const content = textArea.value;
+    const collection = collectionInput.value.trim();
 
     previewPill.textContent = title ? `Preview: ${title}` : "Preview";
     previewTitle.textContent = title || "Untitled";
     previewText.textContent = content || "Start writing… your preview appears here.";
 
+    // Update preview meta (collection + tags)
+    previewMeta.innerHTML = "";
+    const col = collection || "Unsorted";
+    previewMeta.appendChild(el("span", { class: "pill", text: `Collection: ${col}` }));
+
+    const tags = tagsInput.value
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (tags.length) {
+      previewMeta.appendChild(el("span", { class: "pill", text: `Tags: ${tags.slice(0, 3).join(", ")}` }));
+    }
+
     saveDraft({
       title: titleInput.value,
       tags: tagsInput.value,
+      collection: collectionInput.value, // NEW
       content: textArea.value,
       format: formatSelect.value
     });
@@ -73,21 +98,19 @@ export default async function Editor() {
 
   // Auto-fit font so it always fits the chosen frame
   function fitTextToFrame() {
-    const area = exportArea;
-
     // The poemText element is the one we resize
     const poemEl = previewText;
 
     // Reset to a comfortable size first
     poemEl.style.fontSize = "22px";
 
-    // Leave room for brand pill + title + padding
-    const paddingAllowance = 220; // safe space for header elements
-    const maxLoops = 40;
+    // Leave room for brand pill + title + meta + padding
+    const paddingAllowance = 260;
+    const maxLoops = 45;
     let loops = 0;
 
     // Shrink until it fits
-    while (poemEl.scrollHeight > (area.clientHeight - paddingAllowance) && loops < maxLoops) {
+    while (poemEl.scrollHeight > (exportArea.clientHeight - paddingAllowance) && loops < maxLoops) {
       const current = parseFloat(getComputedStyle(poemEl).fontSize);
       const next = Math.max(12, current - 1);
       poemEl.style.fontSize = next + "px";
@@ -106,6 +129,9 @@ export default async function Editor() {
     const content = textArea.value.trim();
     const tags = tagsInput.value.split(",").map(s => s.trim()).filter(Boolean);
 
+    // NEW: collection
+    const collection = collectionInput.value.trim() || "Unsorted";
+
     if (!title || !content) return toast("Add a title and your poem text.");
 
     const id = `${Date.now()}-${title
@@ -119,6 +145,7 @@ export default async function Editor() {
       title,
       date: new Date().toISOString().slice(0, 10),
       tags,
+      collection, // NEW
       content
     });
 
@@ -128,6 +155,7 @@ export default async function Editor() {
   clearBtn.addEventListener("click", () => {
     titleInput.value = "";
     tagsInput.value = "";
+    collectionInput.value = ""; // NEW
     textArea.value = "";
     // keep formatSelect as is
     syncDraft();
@@ -155,9 +183,10 @@ export default async function Editor() {
       .replace(/^-|-$/g, "");
 
     const link = document.createElement("a");
-    link.download = `${safeTitle || "draft"}.png`;
+    link.download = `${safeTitle || "draft"}-${formatSelect.value}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
+
     toast("Exported PNG.");
   });
 
@@ -170,7 +199,8 @@ export default async function Editor() {
   }
 
   titleInput.addEventListener("input", () => updateEverything(false));
-  tagsInput.addEventListener("input", () => syncDraft()); // tags don't affect preview sizing
+  tagsInput.addEventListener("input", () => syncDraft()); // tags don't affect sizing much
+  collectionInput.addEventListener("input", () => updateEverything(false)); // NEW
   textArea.addEventListener("input", () => updateEverything(false));
 
   formatSelect.addEventListener("change", () => {
@@ -197,6 +227,11 @@ export default async function Editor() {
 
         el("div", { class: "label", text: "Tags (comma separated)" }),
         tagsInput,
+        el("div", { style: "height:12px" }),
+
+        // NEW: Collection input
+        el("div", { class: "label", text: "Collection / Chapter" }),
+        collectionInput,
         el("div", { style: "height:12px" }),
 
         el("div", { class: "label", text: "Export Format" }),

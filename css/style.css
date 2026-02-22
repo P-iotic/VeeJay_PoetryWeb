@@ -245,3 +245,58 @@ hr.sep{
   padding:16px;
   background: rgba(0,0,0,.35);
 }
+
+/* =========================
+   READ MODE
+   ========================= */
+
+:root.readmode body {
+  overflow-x: hidden;
+}
+
+/* Hide site chrome */
+:root.readmode .topbar,
+:root.readmode .footer {
+  display: none !important;
+}
+
+/* Give the poem more space */
+:root.readmode .shell {
+  max-width: 980px;
+  padding: 22px;
+}
+
+/* Make the poem card feel like a reading page */
+:root.readmode .card {
+  background: rgba(0,0,0,.42);
+  border-color: rgba(255,255,255,.14);
+  box-shadow: 0 26px 80px rgba(0,0,0,.65);
+}
+
+/* Increase readability */
+:root.readmode .poemText {
+  font-size: 18px;
+  line-height: 1.95;
+  letter-spacing: .1px;
+}
+
+/* Slightly bigger title */
+:root.readmode .poemTitle {
+  font-size: 26px;
+}
+
+/* Optional: soften the background orbs so it's calmer */
+:root.readmode .orbs {
+  opacity: .35;
+}
+
+/* Keep buttons visible but subtle */
+:root.readmode .btn {
+  background: rgba(255,255,255,.05);
+}
+
+/* On small screens, reduce padding */
+@media (max-width: 680px) {
+  :root.readmode .shell { padding: 14px; }
+  :root.readmode .poemText { font-size: 16px; }
+}
